@@ -8,39 +8,38 @@ import logging
 
 try:
     import ujson as json
-except: 
-    import json 
-    
+except:
+    import json
+
 # create logger
-logger = logging.getLogger('datastore.'+__name__)
+logger = logging.getLogger('datastore.' + __name__)
+
 
 class JSONEncoder:
     """A class that can make JSON a little smaller"""
-    base_chars = 'abcdefghjijklmnopqrstuvwxyzABCDEFGHJIJKLMNOPQRSTUVWXYZ'
+    base_chars = 'abcdefghjijklmnopqrstuvwxyzABCDEFGHJIJKLMNOPQRSTUVWXYZ0123456789,.;[]-=_+()^&!'
     base = len(base_chars)
 
-
-    def __init__(self, compressor={}):   
+    def __init__(self, compressor={}):
         if compressor == {}:
             compressor = {
                 'num': 0,
-                'fromKey':{},
+                'fromKey': {},
                 'key': {},
             }
         self.compressor = compressor
-        logger.info("HI")
 
     def num2string(self, number):
         if number < 1:
             return 'a'
         nums = []
         while True:
-            power = math.floor(math.log(number)/math.log(self.base))
-            if self.base**(power+1) == number:
-                power = power+1
+            power = math.floor(math.log(number) / math.log(self.base))
+            if self.base**(power + 1) == number:
+                power = power + 1
             if len(nums) == 0:
-                nums = [0]*(power+1)
-            num_at_power = math.floor(number/math.pow(self.base, power))
+                nums = [0] * (power + 1)
+            num_at_power = math.floor(number / math.pow(self.base, power))
             nums[power] = int(num_at_power)
             number = number - num_at_power * math.pow(self.base, power)
             if number < self.base:
@@ -62,16 +61,22 @@ class JSONEncoder:
         for key in d.keys():
             compressedKey = self.num2string(self.compressor['num'])
             if key not in self.compressor['fromKey']:
+                logger.debug(
+                    "compress '{}' -> '{}'".format(key, compressedKey))
                 self.compressor['fromKey'][key] = compressedKey
                 self.compressor['key'][compressedKey] = key
                 self.compressor['num'] += 1
             else:
                 compressedKey = self.compressor['fromKey'][key]
             new_d[compressedKey] = d[key]
+        if logger.getEffectiveLevel() <= logging.INFO:
+            logger.info("reduced {}%".format(
+                int(100 - len(json.dumps(new_d)[1:-1]) * 100 / len(json.dumps(d)))))
+
         return json.dumps(new_d)[1:-1]
 
     def decode(self, d_string):
-        d = json.loads('{'+d_string+'}')
+        d = json.loads('{' + d_string + '}')
         new_d = {}
         for key in d.keys():
             new_d[self.compressor['key'][key]] = d[key]
@@ -82,4 +87,3 @@ class JSONEncoder:
 
     def loads(self, compressor_string):
         self.compressor = json.loads(compressor_string)
-
