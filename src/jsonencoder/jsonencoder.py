@@ -1,13 +1,26 @@
-import ujson as json
+# directory management
+import os
+import sys
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
 import math
+import logging
 
+try:
+    import ujson as json
+except: 
+    import json 
+    
+# create logger
+logger = logging.getLogger('datastore.'+__name__)
 
-class jsonencoder:
+class JSONEncoder:
     """A class that can make JSON a little smaller"""
     base_chars = 'abcdefghjijklmnopqrstuvwxyzABCDEFGHJIJKLMNOPQRSTUVWXYZ'
     base = len(base_chars)
 
-    def __init__(self, compressor={}):
+
+    def __init__(self, compressor={}):   
         if compressor == {}:
             compressor = {
                 'num': 0,
@@ -15,6 +28,7 @@ class jsonencoder:
                 'key': {},
             }
         self.compressor = compressor
+        logger.info("HI")
 
     def num2string(self, number):
         if number < 1:

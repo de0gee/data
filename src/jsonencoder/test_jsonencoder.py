@@ -19,7 +19,7 @@ def encode_single_thing():
         "cd:df": -20,
         "user": "zack"
     }
-    c = jsonencoder()
+    c = jsonencoder.JSONEncoder()
     return c.encode(a)
 
 # pip install pytest-benchmark
@@ -51,11 +51,11 @@ def test_encode():
         "user": "zack"
     }
 
-    c = jsonencoder()
+    c = jsonencoder.JSONEncoder()
     a_enc = c.encode(a)
 
     c_string = c.dumps()
-    d = jsonencoder()
+    d = jsonencoder.JSONEncoder()
     d.loads(c_string)
     b_enc = d.encode(b)
 
